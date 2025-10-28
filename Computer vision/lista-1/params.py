@@ -1,1 +1,0 @@
-path = r"C:\Users\RODO\Desktop\Computer vision\lista-1\a.jfif"
