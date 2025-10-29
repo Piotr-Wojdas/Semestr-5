@@ -1,10 +1,10 @@
 from pathlib import Path
 from PIL import Image, ImageFilter
-import params as par
 import numpy as np
 import cv2
 
-path = str(Path.home() / "Desktop/Computer vision/lista-1/a.jfif")
+BASE_DIR = Path(__file__).resolve().parent
+path = BASE_DIR / "a.jfif"
 
 def load_image(path):
 	img = Image.open(path)
