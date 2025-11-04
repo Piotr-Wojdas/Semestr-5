@@ -1,0 +1,9 @@
+# Ignorowane pliki generowane automatycznie
+*.txt
+*.png
+*.html
+
+# Ignorowanie katalogów z bibliotekami/środowiskami
+lib/
+.venv/
+venv/
