@@ -1,0 +1,76 @@
+a) Źródłowy zbiór danych
+
+Problem XOR (exclusive OR) jest klasycznym problemem w dziedzinie sieci neuronowych, ponieważ nie jest liniowo separowalny. Oznacza to, że nie można narysować prostej linii, która oddzieliłaby dane wejściowe na dwie klasy wyjściowe.
+
+Zbiór danych dla problemu XOR składa się z czterech par wejściowych:
+- (0, 0) -> 0
+- (0, 1) -> 1
+- (1, 0) -> 1
+- (1, 1) -> 0
+
+b) Struktura sieci, funkcje aktywacji, funkcja błędu
+
+Struktura sieci:
+- Warstwa wejściowa: 2 neurony (odpowiadające dwóm wejściom binarnym).
+- Warstwa ukryta: 2 neurony. Taka liczba jest wystarczająca do nauczenia się nieliniowej zależności XOR.
+- Warstwa wyjściowa: 1 neuron (reprezentujący binarne wyjście 0 lub 1).
+
+Funkcje aktywacji:
+- Funkcja sigmoidalna: Zastosowano ją zarówno w warstwie ukrytej, jak i wyjściowej.
+  - Wzór: f(x) = 1 / (1 + e^(-x))
+  - Jej pochodna, niezbędna w procesie uczenia (propagacji wstecznej), ma prostą postać: f'(s) = s * (1 - s), gdzie s = f(x).
+
+Funkcja błędu:
+- Błąd średniokwadratowy (Mean Squared Error, MSE): Mierzy on średnią kwadratową różnicę między wartościami oczekiwanymi a przewidywanymi przez sieć.
+  - Wzór: E = (1/N) * SUM_i((y_i - y_hat_i)^2)
+  gdzie y_i to wartość oczekiwana, a y_hat_i to wartość przewidywana.
+
+c) Postać zbioru uczącego
+
+Zbiór uczący składa się z par (wejście, oczekiwane wyjście). Dla problemu XOR jest to:
+
+- Wejścia (X):
+  [[0, 0],
+   [0, 1],
+   [1, 0],
+   [1, 1]]
+
+- Wyjścia (y):
+  [[0],
+   [1],
+   [1],
+   [0]]
+
+d) Wzory matematyczne definiujące algorytm uczenia (Propagacja wsteczna)
+
+Oznaczenia:
+- X - macierz wejść
+- y - wektor oczekiwanych wyjść
+- W1, b1 - wagi i biasy warstwy ukrytej
+- W2, b2 - wagi i biasy warstwy wyjściowej
+- Z1, A1 - wejście i aktywacja warstwy ukrytej
+- Z2, A2 - wejście i aktywacja warstwy wyjściowej
+- eta - współczynnik uczenia (lr)
+
+1. Propagacja w przód:
+- Z1 = X * W1 + b1
+- A1 = sigmoid(Z1)
+- Z2 = A1 * W2 + b2
+- A2 = sigmoid(Z2)
+
+2. Propagacja wsteczna błędu:
+- Obliczenie błędu na warstwie wyjściowej:
+  - error = y - A2
+  - dZ2 = error * sigmoid_derivative(A2)
+- Obliczenie błędu na warstwie ukrytej:
+  - error_hidden_layer = dZ2 * W2^T
+  - dZ1 = error_hidden_layer * sigmoid_derivative(A1)
+
+3. Aktualizacja wag i biasów:
+- Warstwa wyjściowa:
+  - W2 = W2 + A1^T * dZ2 * eta
+  - b2 = b2 + sum(dZ2) * eta
+- Warstwa ukryta:
+  - W1 = W1 + X^T * dZ1 * eta
+  - b1 = b1 + sum(dZ1) * eta
+

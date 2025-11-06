@@ -1,11 +1,11 @@
 import numpy as np
 
-# funkcja aktyacji - sigmoidalna
-def f(x):
+# funkcja aktywacji - sigmoidalna
+def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-# pochodna tej funkcji
-def df_ds(s):
+# pochodna funkcji sigmoidalnej
+def sigmoid_derivative(s):
     return s * (1 - s)
 
 # XOR
@@ -13,64 +13,64 @@ X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
 y = np.array([[0], [1], [1], [0]])
 
 # parametry
-k = 2  # liczba neuronow wejsciowych
-h = 2  # liczba neuronow w warstwie ukrytej
-r = 1  # liczba neuronow wyjściowych
+n_x = 2  # liczba neuronow wejsciowych
+n_h = 2  # liczba neuronow w warstwie ukrytej
+n_y = 1  # liczba neuronow wyjściowych
 lr = 0.1 # wspolczynnik uczenia
 epochs = 10000 # liczba epok
 
 # wprowadzenie wag i biasów 
 # warstwa ukryta:
-hidden_weights = np.random.uniform(size=(k, h))
-hidden_bias = np.random.uniform(size=(1, h))
+W1 = np.random.uniform(size=(n_x, n_h))
+b1 = np.random.uniform(size=(1, n_h))
 
 # warstwa wyjściowa:
-output_weights = np.random.uniform(size=(h, r))
-output_bias = np.random.uniform(size=(1, r))
+W2 = np.random.uniform(size=(n_h, n_y))
+b2 = np.random.uniform(size=(1, n_y))
 
 # trening sieci
 for i in range(epochs):
     # propagacja w przód
-    s_h = np.dot(X, hidden_weights) + hidden_bias
-    hidden_layer_output = f(s_h)
+    Z1 = np.dot(X, W1) + b1
+    A1 = sigmoid(Z1)
 
-    s_o = np.dot(hidden_layer_output, output_weights) + output_bias
-    predicted_output = f(s_o)
+    Z2 = np.dot(A1, W2) + b2
+    A2 = sigmoid(Z2)
 
     # propagacja w tył
-    error = y - predicted_output
+    error = y - A2
 
-    d_predicted_output = error * df_ds(predicted_output)
+    dZ2 = error * sigmoid_derivative(A2)
     
-    error_hidden_layer = d_predicted_output.dot(output_weights.T)
-    d_hidden_layer = error_hidden_layer * df_ds(hidden_layer_output)
+    error_hidden_layer = dZ2.dot(W2.T)
+    dZ1 = error_hidden_layer * sigmoid_derivative(A1)
 
     # aktualizacja wag i biasów
-    output_weights += hidden_layer_output.T.dot(d_predicted_output) * lr
-    output_bias += np.sum(d_predicted_output, axis=0, keepdims=True) * lr
+    W2 += A1.T.dot(dZ2) * lr
+    b2 += np.sum(dZ2, axis=0, keepdims=True) * lr
 
-    hidden_weights += X.T.dot(d_hidden_layer) * lr
-    hidden_bias += np.sum(d_hidden_layer, axis=0, keepdims=True) * lr
+    W1 += X.T.dot(dZ1) * lr
+    b1 += np.sum(dZ1, axis=0, keepdims=True) * lr
 
     if i % (epochs // 10) == 0:
-        loss = np.sum(np.square(y - predicted_output))
+        loss = np.mean(np.square(y - A2))
         print(f"Epoka: {i}, Błąd (Loss): {loss}")
 
-print("\nFinalne wagi warstwy ukrytej:\n", hidden_weights)
-print("Finalne wagi warstwy wyjściowej:\n", output_weights)
+print("\nFinalne wagi warstwy ukrytej (W1):\n", W1)
+print("Finalne wagi warstwy wyjściowej (W2):\n", W2)
 
 
-def nn_for_xor(X, hidden_weights, hidden_bias, output_weights, output_bias):
-    s_h = np.dot(X, hidden_weights) + hidden_bias
-    hidden_layer_output = f(s_h)
+def nn_for_xor(X_test, W1, b1, W2, b2):
+    Z1 = np.dot(X_test, W1) + b1
+    A1 = sigmoid(Z1)
 
-    s_o = np.dot(hidden_layer_output, output_weights) + output_bias
-    predicted_output = f(s_o)
-    for i in range(len(X)):
+    Z2 = np.dot(A1, W2) + b2
+    A2 = sigmoid(Z2)
+    for i in range(len(X_test)):
        
-        print(f"{X[i]} -> {1 if predicted_output[i][0] > 0.5 else 0} (Oczekiwano: {y[i][0]})")
-        print("Dokładny wynik:", predicted_output[i][0])
+        print(f"{X_test[i]} -> {1 if A2[i][0] > 0.5 else 0} (Oczekiwano: {y[i][0]})")
+        print("Dokładny wynik:", A2[i][0])
 
-nn_for_xor(np.array([[0, 1]]), hidden_weights, hidden_bias, output_weights, output_bias)
+nn_for_xor(X, W1, b1, W2, b2)
 
 
