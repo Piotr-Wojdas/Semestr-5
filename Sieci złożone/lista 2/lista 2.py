@@ -19,7 +19,7 @@ node_map = {node: i for i, node in enumerate(node_list)}
 num_nodes = len(node_list)
 num_edges = len(edges)
 
-# Krok 2: Tworzenie macierzy sąsiedztwa i incydencji
+
 # Macierz sąsiedztwa
 adj_matrix = np.zeros((num_nodes, num_nodes), dtype=int)
 for u, v in edges:
@@ -43,11 +43,11 @@ np.savetxt("adjacency_matrix.txt", adj_matrix, fmt='%d')
 np.savetxt("incidence_matrix.txt", inc_matrix, fmt='%d')
 print("\nMacierze zostały zapisane do plików 'adjacency_matrix.txt' i 'incidence_matrix.txt'")
 
-# Krok 3: Wczytanie grafu do networkx
+# Wczytanie grafu do networkx
 G = nx.DiGraph()
 G.add_edges_from(edges)
 
-# Krok 4: Wizualizacja grafu przy pomocy networkx i matplotlib
+# Wizualizacja grafu przy pomocy networkx i matplotlib
 plt.figure(figsize=(12, 12))
 pos = nx.spring_layout(G, k=0.15, iterations=20)
 nx.draw(G, pos, with_labels=True, node_size=50, font_size=8, arrows=True)
