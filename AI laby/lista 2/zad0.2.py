@@ -39,7 +39,6 @@ for i in range(epochs):
 
     # propagacja w tył
     error = y - A2
-
     dZ2 = error * sigmoid_derivative(A2)
     
     error_hidden_layer = dZ2.dot(W2.T)

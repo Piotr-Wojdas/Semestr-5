@@ -9,7 +9,7 @@ cv2.namedWindow(window_name)
 cv2.createTrackbar("Threshold", window_name, 128, 255, empty)
 
 
-img_path = 'C:\\Users\\RODO\\Desktop\\Semestr 5\\Computer vision\\lista 3\\banana.jfif'
+img_path = 'Computer vision/lista 3/banana.jfif'
 img_original = cv2.imread(img_path)
 
 
@@ -63,3 +63,6 @@ while True:
         break
 
 cv2.destroyAllWindows()
+
+
+
