@@ -1,11 +1,12 @@
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import MinMaxScaler
 
-# --- Definicje funkcji ---
 
 # funkcja aktywacji - sigmoidalna
 def sigmoid(x):
+    x = np.clip(x, -500, 500)
     return 1 / (1 + np.exp(-x))
 
 def sigmoid_derivative(s):
@@ -127,15 +128,58 @@ with open(output_path, 'w', encoding='utf-8') as f:
     accuracy = (correct_predictions / total_predictions) * 100
     f.write(f'Dokładność: {accuracy:.2f}% ({correct_predictions}/{total_predictions} poprawnych predykcji)\n\n')
     
-    f.write('Przewidziane vs Rzeczywiste (indeksy klas):\n')
-    # Mapowanie indeksów na oryginalne etykiety gatunków dla czytelności
-    species_map = {i: category for i, category in enumerate(one_hot_encoder.categories_[0])}
-    f.write(f"Mapowanie indeksów na gatunki: {species_map}\n")
-    for pred, actual in zip(predicted_classes, actual_classes):
-        f.write(f'{pred} vs {actual}\n')
+    f.write('Przewidziane -> Rzeczywiste (nazwy gatunków):\n')
 
-print(f"\nZakończono. Wyniki zapisano w pliku '{output_path}'")
+    original_labels = {1: 'Chinstrap', 2: 'Adelie', 0: 'Gentoo'}
+    index_to_name_map = {i: original_labels.get(label, f"Nieznany {label}") for i, label in enumerate(one_hot_encoder.categories_[0])}
+    
+    for pred_idx, actual_idx in zip(predicted_classes, actual_classes):
+        pred_name = index_to_name_map.get(pred_idx, "Nieznany")
+        actual_name = index_to_name_map.get(actual_idx, "Nieznany")
+        f.write(f'{pred_name} -> {actual_name}\n')
+
 print(f"Ostateczna dokładność na zbiorze testowym: {accuracy:.2f}%")
 
 
 
+def classify_penguin(culmen_length, culmen_depth, flipper_length, body_mass, sex, W1, b1, W2, b2, scaler, index_to_name_map):
+
+    sex_numeric = 1 if sex.upper() == 'MALE' else 0
+    
+    numerical_features = np.array([[culmen_length, culmen_depth, flipper_length, body_mass]])
+    
+    scaled_numerical_features = scaler.transform(numerical_features)
+    
+    penguin_features = np.append(scaled_numerical_features, [[sex_numeric]], axis=1)
+    
+    prediction_raw = predict(penguin_features, W1, b1, W2, b2)
+    predicted_index = np.argmax(prediction_raw, axis=1)[0]
+    
+    predicted_species = index_to_name_map.get(predicted_index, "Nieznany gatunek")
+    
+    return predicted_species
+
+
+from sklearn.preprocessing import MinMaxScaler
+scaler = MinMaxScaler()
+scaler.fit(train_df[['Culmen Length (mm)', 'Culmen Depth (mm)', 'Flipper Length (mm)', 'Body Mass (g)']])
+
+# Dane przykładowego pingwina do klasyfikacji 
+example_penguin = {
+    "culmen_length": 39.1,
+    "culmen_depth": 20,
+    "flipper_length": 181.0,
+    "body_mass": 3750.0,
+    "sex": "MALE"
+}
+
+predicted_species = classify_penguin(
+    example_penguin["culmen_length"],
+    example_penguin["culmen_depth"],
+    example_penguin["flipper_length"],
+    example_penguin["body_mass"],
+    example_penguin["sex"],
+    W1, b1, W2, b2, scaler, index_to_name_map
+)
+
+print(f"\nPrzykładowy pingwin został sklasyfikowany jako: {predicted_species}")

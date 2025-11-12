@@ -33,8 +33,7 @@ def map_species(species):
     elif 'Adelie' in species:
         return 2
     elif 'Gentoo' in species:
-        return 3
-    return 0
+        return 0
 
 def map_sex(sex):
     if sex == 'MALE':

@@ -3,108 +3,107 @@ Liczba epok: 1000
 Współczynnik uczenia: 0.01
 
 Błąd średniokwadratowy w kolejnych epokach:
-Epoka 0: 0.5520675581972331
-Epoka 100: 0.11210282121376482
-Epoka 200: 0.08441299512164141
-Epoka 300: 0.07189107973104501
-Epoka 400: 0.051573662143704846
-Epoka 500: 0.03190034134547067
-Epoka 600: 0.02176838173495212
-Epoka 700: 0.01668998150572108
-Epoka 800: 0.013764061968484209
-Epoka 900: 0.0118747973780166
+Epoka 0: 0.5451167704242031
+Epoka 100: 0.11200387037054671
+Epoka 200: 0.08305643776448557
+Epoka 300: 0.06455061384677982
+Epoka 400: 0.04425575914064608
+Epoka 500: 0.029869007510116168
+Epoka 600: 0.02184991731228839
+Epoka 700: 0.017270748599008092
+Epoka 800: 0.01441989387439251
+Epoka 900: 0.012498200729450173
 
 --- Końcowe Wartości Wag i Biasów ---
 
 Wagi warstwy ukrytej (W1):
-[[ 2.73620439  1.17438241  1.98217211  1.89132177 -8.93880513]
- [ 2.38576404 -5.2170338  -0.96749262 -0.21870324  4.17015739]
- [-2.286002    3.0862113   0.78973523 -0.06008408 -0.85674378]
- [-2.97043758  2.48689745  0.20034676 -0.17166     1.5419894 ]
+[[-0.11050896  9.82268865 -0.30755588 -1.21098673  0.18538438]
+ [-2.2367562  -3.68627111  1.04527339  0.31540248  5.99713188]
+ [ 0.98386268  0.83515791  1.01796896  0.49507563 -3.3716218 ]
+ [ 1.38182945 -1.90401102  0.94566001  1.1581202  -3.46437173]
  [ 0.61185289  0.13949386  0.29214465  0.36636184  0.45606998]]
 
 Bias warstwy ukrytej (b1):
-[[-0.10636512 -1.79994078 -0.60128361 -0.17886268  0.86170789]]
+[[-0.14810627 -1.49488219  1.0168574   0.71823407  1.12251623]]
 
 Wagi warstwy wyjściowej (W2):
-[[ 4.57077016 -1.22593811 -3.36576854]
- [-4.04811743 -2.83806975  5.37621361]
- [ 0.42497058 -2.32767058  1.07112383]
- [ 0.9965812  -1.83209712 -0.04799307]
- [-6.62570274  7.57022057 -4.60578426]]
+[[ 1.74639132 -2.56915718 -1.17096282]
+ [ 4.39200367  6.72576402 -8.08217054]
+ [-0.43117984 -2.65613727  0.66744393]
+ [-0.3633133  -2.71524829  0.82992925]
+ [-6.49610159  4.88678458  2.59247062]]
 
 Bias warstwy wyjściowej (b2):
-[[-9.49488012e-01 -3.79929917e-04 -8.39355026e-01]]
+[[-0.54657985 -3.23464958  1.17179045]]
 
 --- Wyniki dla Zbioru Testującego ---
 Dokładność: 100.00% (67/67 poprawnych predykcji)
 
-Przewidziane vs Rzeczywiste (indeksy klas):
-Mapowanie indeksów na gatunki: {0: np.int64(1), 1: np.int64(2), 2: np.int64(3)}
-1 vs 1
-2 vs 2
-1 vs 1
-0 vs 0
-1 vs 1
-2 vs 2
-2 vs 2
-0 vs 0
-0 vs 0
-0 vs 0
-1 vs 1
-1 vs 1
-2 vs 2
-1 vs 1
-2 vs 2
-1 vs 1
-1 vs 1
-0 vs 0
-1 vs 1
-2 vs 2
-1 vs 1
-1 vs 1
-2 vs 2
-0 vs 0
-1 vs 1
-1 vs 1
-2 vs 2
-2 vs 2
-0 vs 0
-2 vs 2
-0 vs 0
-2 vs 2
-1 vs 1
-1 vs 1
-2 vs 2
-2 vs 2
-0 vs 0
-2 vs 2
-1 vs 1
-1 vs 1
-1 vs 1
-1 vs 1
-0 vs 0
-0 vs 0
-1 vs 1
-1 vs 1
-2 vs 2
-1 vs 1
-1 vs 1
-2 vs 2
-1 vs 1
-2 vs 2
-2 vs 2
-1 vs 1
-1 vs 1
-2 vs 2
-1 vs 1
-1 vs 1
-0 vs 0
-0 vs 0
-2 vs 2
-2 vs 2
-2 vs 2
-1 vs 1
-1 vs 1
-2 vs 2
-1 vs 1
+Przewidziane -> Rzeczywiste (nazwy gatunków):
+Adelie -> Adelie
+Gentoo -> Gentoo
+Adelie -> Adelie
+Chinstrap -> Chinstrap
+Adelie -> Adelie
+Gentoo -> Gentoo
+Gentoo -> Gentoo
+Chinstrap -> Chinstrap
+Chinstrap -> Chinstrap
+Chinstrap -> Chinstrap
+Adelie -> Adelie
+Adelie -> Adelie
+Gentoo -> Gentoo
+Adelie -> Adelie
+Gentoo -> Gentoo
+Adelie -> Adelie
+Adelie -> Adelie
+Chinstrap -> Chinstrap
+Adelie -> Adelie
+Gentoo -> Gentoo
+Adelie -> Adelie
+Adelie -> Adelie
+Gentoo -> Gentoo
+Chinstrap -> Chinstrap
+Adelie -> Adelie
+Adelie -> Adelie
+Gentoo -> Gentoo
+Gentoo -> Gentoo
+Chinstrap -> Chinstrap
+Gentoo -> Gentoo
+Chinstrap -> Chinstrap
+Gentoo -> Gentoo
+Adelie -> Adelie
+Adelie -> Adelie
+Gentoo -> Gentoo
+Gentoo -> Gentoo
+Chinstrap -> Chinstrap
+Gentoo -> Gentoo
+Adelie -> Adelie
+Adelie -> Adelie
+Adelie -> Adelie
+Adelie -> Adelie
+Chinstrap -> Chinstrap
+Chinstrap -> Chinstrap
+Adelie -> Adelie
+Adelie -> Adelie
+Gentoo -> Gentoo
+Adelie -> Adelie
+Adelie -> Adelie
+Gentoo -> Gentoo
+Adelie -> Adelie
+Gentoo -> Gentoo
+Gentoo -> Gentoo
+Adelie -> Adelie
+Adelie -> Adelie
+Gentoo -> Gentoo
+Adelie -> Adelie
+Adelie -> Adelie
+Chinstrap -> Chinstrap
+Chinstrap -> Chinstrap
+Gentoo -> Gentoo
+Gentoo -> Gentoo
+Gentoo -> Gentoo
+Adelie -> Adelie
+Adelie -> Adelie
+Gentoo -> Gentoo
+Adelie -> Adelie
