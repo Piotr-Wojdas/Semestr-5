@@ -39,8 +39,8 @@ k = 5  # liczba wejść
 h = 5  # liczba neuronów w warstwie ukrytej
 r = 3  # liczba wyjść 
 
-lr = 0.01  # współczynnik uczenia
-epochs = 1000 # liczba epok
+lr = 0.1  # współczynnik uczenia
+epochs = 100 # liczba epok
 
 # 3. Inicjalizacja wag i biasów
 np.random.seed(42) # Ustawienie ziarna losowości dla powtarzalności wyników
@@ -83,8 +83,8 @@ for i in range(epochs):
     W1 += X_train.T.dot(dZ1) * lr
     b1 += np.sum(dZ1, axis=0, keepdims=True) * lr
 
-    if i % (epochs // 10) == 0:
-        print(f"Epoka: {i}, Błąd (Loss): {loss}")
+    # if i % (epochs // 10) == 0:
+    #     print(f"Epoka: {i}, Błąd (Loss): {loss}")
 
 # 5. Testowanie sieci
 def predict(X_data, W1, b1, W2, b2):
