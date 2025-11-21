@@ -1,59 +1,58 @@
-Struktura sieci: 5-6-3
-Liczba epok: 100
-Współczynnik uczenia: 0.1
+Struktura sieci: 5-5-3
+Liczba epok: 50
+Współczynnik uczenia: 0.18
 
 Błąd średniokwadratowy w kolejnych epokach:
-Epoka 0: 0.6046636448471161
+Epoka 0: 0.5451167704242031
 
 --- Końcowe Wartości Wag i Biasów ---
 
 Wagi warstwy ukrytej (W1):
-[[-0.04766489  0.05743749  4.99995154 -3.25184043 -7.66347696 -7.50258028]
- [-5.78722505  0.32864311  1.36984379  1.4492611   2.11736587  4.62465297]
- [ 3.72164181 -0.89268369 -1.74451224 -1.40702342 -0.94086876 -2.3506456 ]
- [ 3.55657561 -0.66097041 -2.85250085 -0.41745263  1.3874758  -0.33287434]
- [ 0.45606998  0.78517596  0.19967378  0.51423444  0.59241457  0.04645041]]
+[[-1.51891702  3.39930963 -1.38000383 -3.19911841 -8.16542867]
+ [-0.65907482 -8.99117243 -0.10520734  0.83164648  4.99969238]
+ [-1.22108923  5.92032411 -0.78726856 -1.67390589 -4.43549641]
+ [-0.66205996  4.62163017 -0.6564925  -0.5357857  -2.13108423]
+ [ 0.61185289  0.13949386  0.29214465  0.36636184  0.45606998]]
 
 Bias warstwy ukrytej (b1):
-[[-1.74781387 -1.53517211 -1.49562993  0.00895885  1.69188469  1.12868916]]
+[[-1.22480086 -3.87241411 -2.02650973 -0.59729963  0.97355549]]
 
 Wagi warstwy wyjściowej (W2):
-[[ 4.98606245 -5.02766556 -2.91860791]
- [-1.1862194   0.22104705 -0.20658868]
- [-2.70999291  3.57220135 -1.99816823]
- [-1.8878514  -1.30340137  1.74517015]
- [-1.1227984  -4.06035353  3.38013286]
- [-4.13240111 -2.46734134  4.66094212]]
+[[-1.16549303 -2.33502785  0.43839681]
+ [ 5.56868529 -3.6520078  -5.41230295]
+ [-1.38549436 -2.71308149  0.19296722]
+ [-1.88973738 -2.63909291  1.3277579 ]
+ [-3.92342595 -2.7471949   3.96988406]]
 
 Bias warstwy wyjściowej (b2):
-[[-0.12421914  0.92494384 -2.24025427]]
+[[-2.10842984  1.9682383  -1.81942031]]
 
 --- Wyniki dla Zbioru Testującego ---
-Dokładność: 100.00% (67/67 poprawnych predykcji)
+Dokładność: 91.04% (61/67 poprawnych predykcji)
 
 Przewidziane -> Rzeczywiste (nazwy gatunków):
 Adelie -> Adelie
 Gentoo -> Gentoo
+Chinstrap -> Adelie
+Chinstrap -> Chinstrap
+Chinstrap -> Adelie
+Gentoo -> Gentoo
+Gentoo -> Gentoo
+Chinstrap -> Chinstrap
+Chinstrap -> Chinstrap
+Chinstrap -> Chinstrap
+Chinstrap -> Adelie
+Adelie -> Adelie
+Gentoo -> Gentoo
+Adelie -> Adelie
+Gentoo -> Gentoo
+Adelie -> Adelie
 Adelie -> Adelie
 Chinstrap -> Chinstrap
 Adelie -> Adelie
 Gentoo -> Gentoo
-Gentoo -> Gentoo
-Chinstrap -> Chinstrap
-Chinstrap -> Chinstrap
-Chinstrap -> Chinstrap
-Adelie -> Adelie
-Adelie -> Adelie
-Gentoo -> Gentoo
-Adelie -> Adelie
-Gentoo -> Gentoo
-Adelie -> Adelie
-Adelie -> Adelie
-Chinstrap -> Chinstrap
-Adelie -> Adelie
-Gentoo -> Gentoo
-Adelie -> Adelie
-Adelie -> Adelie
+Chinstrap -> Adelie
+Chinstrap -> Adelie
 Gentoo -> Gentoo
 Chinstrap -> Chinstrap
 Adelie -> Adelie
@@ -64,7 +63,7 @@ Chinstrap -> Chinstrap
 Gentoo -> Gentoo
 Chinstrap -> Chinstrap
 Gentoo -> Gentoo
-Adelie -> Adelie
+Chinstrap -> Adelie
 Adelie -> Adelie
 Gentoo -> Gentoo
 Gentoo -> Gentoo
