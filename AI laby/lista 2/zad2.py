@@ -13,8 +13,9 @@ def sigmoid(x):
 def sigmoid_derivative(s):
     return s * (1 - s)
 
-
-
+acc = []
+lr_list = []
+h_list = []
 # 1. Przygotowanie danych
 
 train_df = pd.read_csv('AI laby/lista 2/penguins_train.csv')
@@ -55,7 +56,7 @@ def trening(k,h,r,lr,epochs,isclassify=False,example_penguein=None,is_cmatrix=Tr
     b2 = np.random.uniform(size=(1, r))
 
     errors_history = []
-
+    
     # 4. Trening sieci 
     for i in range(epochs):
         # Propagacja w przód 
@@ -141,6 +142,10 @@ def trening(k,h,r,lr,epochs,isclassify=False,example_penguein=None,is_cmatrix=Tr
             f.write(f'{pred_name} -> {actual_name}\n')
 
     print(f"Ostateczna dokładność na zbiorze testowym: {accuracy:.2f}% dla wsp. uczenia: {lr:.2f} , epok: {epochs} oraz liczby neuronów ukrytych: {h}")
+    lr_list.append(lr)
+    acc.append(accuracy)
+    h_list.append(h)
+
 
     if isclassify == True:
         def classify_penguin(culmen_length, culmen_depth, flipper_length, body_mass, sex, W1, b1, W2, b2, scaler, index_to_name_map):
@@ -212,4 +217,15 @@ def trening(k,h,r,lr,epochs,isclassify=False,example_penguein=None,is_cmatrix=Tr
 # for i in np.arange(1,11,1):
 #     trening(k,i,r,lr=0.18,epochs=100,is_cmatrix=False)
 
-trening(k,5,r,0.18,epochs=50,is_cmatrix=True)
+trening(k,h,r,0.18,epochs=100,is_cmatrix=True)
+
+def acc_to_lr_plot(h_list, acc):
+        plt.figure(figsize=(10, 6))
+        plt.plot(h_list, acc, marker='o')
+        plt.title('Dokładność vs l. warstw ukrytych')
+        plt.xlabel('Liczba warstw ukrytych')
+        plt.ylabel('Dokładność (%)')
+        plt.grid()
+        plt.show()
+
+acc_to_lr_plot(h_list, acc)

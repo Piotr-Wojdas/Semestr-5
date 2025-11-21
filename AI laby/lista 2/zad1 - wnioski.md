@@ -1,1 +1,1 @@
-WNIOSKI W TYM [LINKU:](https://docs.google.com/document/d/1eYWURmaauB80zkKigqfIwT7ugG6R1IKqWw9KpInNPew/edit?usp=sharing)
+WNIOSKI W TYM [LINKU:]( )
