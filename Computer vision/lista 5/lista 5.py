@@ -37,7 +37,6 @@ def update(val):
     cv2.imshow(f'Resized - {method_name}', resized_cv)
     
     # --- Difference Calculation ---
-    # To calculate the difference, we need to resize the scaled image back to the original size
     back_resized = cv2.resize(resized_cv, (w, h), interpolation=interpolation)
     diff = cv2.absdiff(img, back_resized)
     cv2.imshow('Difference', diff)
@@ -45,9 +44,10 @@ def update(val):
 
 # Load the image
 
-img = cv2.imread('Computer vision/lista 1/a.jfif')
+img = cv2.imread('Computer vision/lista 5/zdj.jpg')
 if img is None:
     raise FileNotFoundError("Image not found. Please check the path.")
+img = cv2.resize(img, (259, 194))
 h, w = img.shape[:2]
 
 
@@ -55,7 +55,6 @@ h, w = img.shape[:2]
 cv2.namedWindow('Controls')
 cv2.resizeWindow('Controls', 500, 100)
 
-# Create trackbars for scale and interpolation
 # Scale trackbar: 0-100 (maps to 0.1-3.0)
 cv2.createTrackbar('Scale', 'Controls', 100, 290, update) 
 
@@ -65,11 +64,13 @@ cv2.createTrackbar('Interpolation', 'Controls', 1, 3, update)
 # Display original image
 cv2.imshow('Original', img)
 
-# Initial call to update to show the first result
 update(0)
 
 
-cv2.waitKey(0)
+while True:
+    if cv2.waitKey(1) & 0xFF == 27:
+        break
+
 cv2.destroyAllWindows()
 
 

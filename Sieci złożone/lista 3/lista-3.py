@@ -68,16 +68,13 @@ density = nx.density(Network)
 if density == 1:
     print("Graf jest pełny.")
 else: 
-    print("szukamy klik")
+    print("Graf nie jest pełny.")
 
 
 
 def clique_finder(G, n=5):
-    print("\n--- Wyszukiwanie i wizualizacja klik ---")
     
-    # --- 1. Znajdowanie kliki maksymalnej ---
-    print("Szukanie kliki maksymalnej (może to potrwać)...")
-  
+    # --- 1. Znajdowanie kliki maksymalnej ---  
     max_clique = max(nx.find_cliques(G), key=len)
     print(f"Znaleziono klikę maksymalną o rozmiarze: {len(max_clique)}")
     
@@ -104,7 +101,6 @@ def clique_finder(G, n=5):
 
 
     # --- 2. Znajdowanie przykładowej n-kliki ---
-    print(f"\nSzukanie przykładowej kliki o rozmiarze co najmniej {n}...")
     try:
         # Znajdź pierwszą napotkaną klikę o rozmiarze >= n
         n_clique = next(c for c in nx.find_cliques(G) if len(c) == n)
@@ -160,14 +156,12 @@ def find_connectivity_properties(G):
     print(f"k-spójność krawędziowa grafu wynosi: {edge_conn}")
        
     
-find_connectivity_properties(Network)
 
 analyze_graph(Network)
 
 clique_finder(Network, n=5)
 
-
-
+find_connectivity_properties(Network)
 
 
 

@@ -77,8 +77,8 @@ def update(val):
 # --- Przykładowe użycie ---
 
 # Wczytanie obrazu
-img = cv2.imread('Computer vision/lista 1/a.jfif')
-
+img = cv2.imread('Computer vision/lista 5/zdj.jpg')
+img = cv2.resize(img, (259, 194))
 original_h, original_w = img.shape[:2]
 
 # Utworzenie okna na suwaki
@@ -93,10 +93,8 @@ cv2.createTrackbar('Height', 'Controls', original_h, original_h * 3, update)
 # Wyświetlenie oryginalnego obrazu
 cv2.imshow('Oryginalny', img)
 
-# Pierwsze wywołanie, aby wyświetlić obrazy na starcie
 update(0)
 
-# Pętla do utrzymania okna i obsługi zamykania
 while True:
     if cv2.waitKey(1) & 0xFF == 27:
         break
