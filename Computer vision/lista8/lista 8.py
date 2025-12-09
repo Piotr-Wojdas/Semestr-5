@@ -9,61 +9,25 @@ import numpy as np
 
 
 def add_gaussian_noise(image, variance=0.1):
-    """
-    Dodaje szum gaussowski do obrazu.
-    
-    Args:
-        image: Tensor obrazu o wymiarach [C, H, W] znormalizowany do [0, 1]
-        variance: Wariancja szumu gaussowskiego
-    
-    Returns:
-        Tensor obrazu z dodanym szumem, obcięty do zakresu [0, 1]
-    """
+
     noise = torch.randn_like(image) * (variance ** 0.5)
     noisy_image = image + noise
     return torch.clamp(noisy_image, 0.0, 1.0)
 
 
 def add_salt_and_pepper_noise(image, salt_prob=0.05, pepper_prob=0.05):
-    """
-    Dodaje szum typu salt-and-pepper do obrazu.
-    
-    Args:
-        image: Tensor obrazu o wymiarach [C, H, W] znormalizowany do [0, 1]
-        salt_prob: Prawdopodobieństwo wystąpienia piksela białego (salt)
-        pepper_prob: Prawdopodobieństwo wystąpienia piksela czarnego (pepper)
-    
-    Returns:
-        Tensor obrazu z dodanym szumem
-    """
     noisy_image = image.clone()
-    
-    # Salt (białe piksele)
     salt_mask = torch.rand_like(image) < salt_prob
     noisy_image[salt_mask] = 1.0
-    
-    # Pepper (czarne piksele)
     pepper_mask = torch.rand_like(image) < pepper_prob
     noisy_image[pepper_mask] = 0.0
-    
     return noisy_image
 
 
 class NoisyFashionMNIST(Dataset):
-    """
-    Dataset zwracający pary obrazów: zaszumiony (input) i czysty (target).
-    """
     def __init__(self, root='.Computer vision/lista 8/data', train=True, noise_type='gaussian', 
                  variance=0.1, salt_prob=0.05, pepper_prob=0.05):
-        """
-        Args:
-            root: Ścieżka do katalogu z danymi
-            train: Czy użyć zbioru treningowego (True) czy testowego (False)
-            noise_type: Typ szumu - 'gaussian' lub 'salt_and_pepper'
-            variance: Wariancja dla szumu gaussowskiego
-            salt_prob: Prawdopodobieństwo salt dla szumu salt-and-pepper
-            pepper_prob: Prawdopodobieństwo pepper dla szumu salt-and-pepper
-        """
+       
         # Transformacja: konwersja do tensora (automatycznie normalizuje do [0, 1])
         transform = transforms.Compose([
             transforms.ToTensor()
@@ -102,9 +66,7 @@ class NoisyFashionMNIST(Dataset):
 
 
 class ConvAutoencoder(nn.Module):
-    """
-    Konwolucyjny autoenkoder do odszumiania obrazów.
-    """
+    
     def __init__(self):
         super(ConvAutoencoder, self).__init__()
         
@@ -139,21 +101,10 @@ class ConvAutoencoder(nn.Module):
         x = self.final_crop(x)
         return x
 
+device = 'cpu' if not torch.cuda.is_available() else 'cuda'
 
-def train_autoencoder(model, train_loader, num_epochs=5, learning_rate=0.001, device='cpu'):
-    """
-    Trenuje autoenkoder do odszumiania obrazów.
-    
-    Args:
-        model: Model autoenkodera
-        train_loader: DataLoader z danymi treningowymi
-        num_epochs: Liczba epok treningu
-        learning_rate: Współczynnik uczenia
-        device: Urządzenie ('cpu' lub 'cuda')
-    
-    Returns:
-        Lista strat dla każdej epoki
-    """
+# pętla treningowa
+def train_autoencoder(model, train_loader, num_epochs=5, learning_rate=0.001, device=device):
     model.to(device)
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -179,9 +130,8 @@ def train_autoencoder(model, train_loader, num_epochs=5, learning_rate=0.001, de
             
             running_loss += loss.item()
             
-            if (i + 1) % 100 == 0:
-                print(f'Epoka [{epoch+1}/{num_epochs}], Krok [{i+1}/{len(train_loader)}], '
-                      f'Loss: {loss.item():.4f}')
+            
+        print(f'Epoka [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}')
         
         epoch_loss = running_loss / len(train_loader)
         loss_history.append(epoch_loss)
@@ -190,16 +140,7 @@ def train_autoencoder(model, train_loader, num_epochs=5, learning_rate=0.001, de
     return loss_history
 
 
-def evaluate_autoencoder(model, test_dataset, num_samples=5, device='cpu'):
-    """
-    Ewaluacja autoenkodera - wizualizacja wyników odszumiania.
-    
-    Args:
-        model: Wytrenowany model autoenkodera
-        test_dataset: Dataset testowy
-        num_samples: Liczba próbek do wyświetlenia
-        device: Urządzenie ('cpu' lub 'cuda')
-    """
+def evaluate_autoencoder(model, test_dataset, num_samples=5, device=device):
     model.eval()
     model.to(device)
     
@@ -239,24 +180,7 @@ def evaluate_autoencoder(model, test_dataset, num_samples=5, device='cpu'):
     plt.tight_layout()
     plt.show()
 
-
-def plot_loss_history(loss_history):
-    """
-    Wyświetla wykres historii strat podczas treningu.
-    """
-    plt.figure(figsize=(10, 5))
-    plt.plot(range(1, len(loss_history) + 1), loss_history, marker='o')
-    plt.xlabel('Epoka')
-    plt.ylabel('Średnia strata (MSE)')
-    plt.title('Historia strat podczas treningu')
-    plt.grid(True)
-    plt.show()
-
-
 def visualize_samples(dataset, num_samples=5):
-    """
-    Wizualizacja próbek z datasetu - porównanie obrazów zaszumionych i czystych.
-    """
     fig, axes = plt.subplots(num_samples, 2, figsize=(6, 2*num_samples))
     
     class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
@@ -284,26 +208,19 @@ def visualize_samples(dataset, num_samples=5):
 
 
 if __name__ == "__main__":
-    # Ustawienie urządzenia
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"Używane urządzenie: {device}\n")
+    device = 'cpu' if not torch.cuda.is_available() else 'cuda'
+    # Przygotowanie danych 
     
-    # ===== CZĘŚĆ 1: Przygotowanie danych =====
-    print("="*60)
-    print("CZĘŚĆ 1: Przygotowanie danych")
-    print("="*60)
-    
-    # Przykład 1: Szum gaussowski
-    print("\n1. Tworzenie datasetu z szumem gaussowskim...")
+    # Szum gaussowski
     train_dataset_gaussian = NoisyFashionMNIST(
-        root='./data',
+        root='.Computer vision/lista8/data',
         train=True,
         noise_type='gaussian',
         variance=0.1
     )
     
     test_dataset_gaussian = NoisyFashionMNIST(
-        root='./data',
+        root='.Computer vision/lista8/data',
         train=False,
         noise_type='gaussian',
         variance=0.1
@@ -317,7 +234,7 @@ if __name__ == "__main__":
     # Przykład 2: Szum salt-and-pepper
     print("\n2. Tworzenie datasetu z szumem salt-and-pepper...")
     train_dataset_sp = NoisyFashionMNIST(
-        root='./data',
+        root='.Computer vision/lista8/data',
         train=True,
         noise_type='salt_and_pepper',
         salt_prob=0.05,
@@ -325,24 +242,18 @@ if __name__ == "__main__":
     )
     
     test_dataset_sp = NoisyFashionMNIST(
-        root='./data',
+        root='.Computer vision/lista8/data',
         train=False,
         noise_type='salt_and_pepper',
-        salt_prob=0.05,
-        pepper_prob=0.05
+        salt_prob=0.15,
+        pepper_prob=0.15
     )
     
-    print(f"Rozmiar datasetu treningowego: {len(train_dataset_sp)}")
-    print(f"Rozmiar datasetu testowego: {len(test_dataset_sp)}")
-    print("\nWizualizacja próbek z szumem salt-and-pepper:")
     visualize_samples(train_dataset_sp, num_samples=5)
     
-    # ===== CZĘŚĆ 2: Trening autoenkodera dla szumu gaussowskiego =====
-    print("\n" + "="*60)
-    print("CZĘŚĆ 2: Trening autoenkodera - szum gaussowski")
-    print("="*60)
+    # Trening autoenkodera dla szumu gaussowskiego
     
-    # Tworzenie DataLoader
+    # DataLoader
     train_loader_gaussian = DataLoader(
         train_dataset_gaussian,
         batch_size=128,
@@ -352,11 +263,8 @@ if __name__ == "__main__":
     
     # Inicjalizacja modelu
     model_gaussian = ConvAutoencoder()
-    print(f"\nArchitektura modelu:")
-    print(model_gaussian)
     
     # Trening
-    print(f"\nRozpoczynanie treningu (5 epok)...")
     loss_history_gaussian = train_autoencoder(
         model=model_gaussian,
         train_loader=train_loader_gaussian,
@@ -365,16 +273,7 @@ if __name__ == "__main__":
         device=device
     )
     
-    # Wykres strat
-    print("\nWyświetlanie wykresu strat...")
-    plot_loss_history(loss_history_gaussian)
-    
-    # ===== CZĘŚĆ 3: Ewaluacja dla szumu gaussowskiego =====
-    print("\n" + "="*60)
-    print("CZĘŚĆ 3: Ewaluacja - szum gaussowski")
-    print("="*60)
-    
-    print("\nWyświetlanie wyników odszumiania...")
+    # Ewaluacja dla szumu gaussowskiego    
     evaluate_autoencoder(
         model=model_gaussian,
         test_dataset=test_dataset_gaussian,
@@ -382,12 +281,9 @@ if __name__ == "__main__":
         device=device
     )
     
-    # ===== CZĘŚĆ 4: Trening autoenkodera dla szumu salt-and-pepper =====
-    print("\n" + "="*60)
-    print("CZĘŚĆ 4: Trening autoenkodera - szum salt-and-pepper")
-    print("="*60)
+    # Trening autoenkodera dla szumu salt-and-pepper
     
-    # Tworzenie DataLoader
+    # DataLoader
     train_loader_sp = DataLoader(
         train_dataset_sp,
         batch_size=128,
@@ -399,7 +295,6 @@ if __name__ == "__main__":
     model_sp = ConvAutoencoder()
     
     # Trening
-    print(f"\nRozpoczynanie treningu (5 epok)...")
     loss_history_sp = train_autoencoder(
         model=model_sp,
         train_loader=train_loader_sp,
@@ -408,16 +303,7 @@ if __name__ == "__main__":
         device=device
     )
     
-    # Wykres strat
-    print("\nWyświetlanie wykresu strat...")
-    plot_loss_history(loss_history_sp)
-    
-    # ===== CZĘŚĆ 5: Ewaluacja dla szumu salt-and-pepper =====
-    print("\n" + "="*60)
-    print("CZĘŚĆ 5: Ewaluacja - szum salt-and-pepper")
-    print("="*60)
-    
-    print("\nWyświetlanie wyników odszumiania...")
+    # Ewaluacja dla szumu salt-and-pepper
     evaluate_autoencoder(
         model=model_sp,
         test_dataset=test_dataset_sp,
@@ -425,10 +311,4 @@ if __name__ == "__main__":
         device=device
     )
     
-    # Zapisanie modeli
-    print("\n" + "="*60)
-    print("Zapisywanie wytrenowanych modeli...")
-    torch.save(model_gaussian.state_dict(), 'autoencoder_gaussian.pth')
-    torch.save(model_sp.state_dict(), 'autoencoder_salt_pepper.pth')
-    print("Modele zapisane jako 'autoencoder_gaussian.pth' i 'autoencoder_salt_pepper.pth'")
-    print("="*60)
+    

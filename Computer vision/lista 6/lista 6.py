@@ -5,9 +5,9 @@ from scipy import ndimage as ndi
 from scipy.ndimage import distance_transform_edt, label
 
 def f_otsu(hist, img):
-    va_N = sum(hist)
-    va_L = len(hist)
-    l_p = [hist[n]/va_N for n in range(va_L)]
+    va_N = sum(hist)    # liczba pikseli
+    va_L = len(hist)    # liczba poziomów szarości
+    l_p = [hist[n]/va_N for n in range(va_L)]   # p'stwo występowania poziomu n
     va_max_sigma = 0
     va_k = 0
 
@@ -68,7 +68,7 @@ def f_show(o_img, o_img_bin, o_markers, o_labels):
     plt.show()
 
 
-l_paths = ["Computer vision/lista 6/coin.png","Computer vision/lista 1/a.jfif"]
+l_paths = ["Computer vision/lista 1/a.jfif"]
 for va_path in l_paths:
     o_img = cv2.imread(va_path, cv2.IMREAD_GRAYSCALE)
     if o_img is None:
