@@ -1,77 +1,78 @@
-import numpy as np
 import cv2
+import numpy as np
 import matplotlib.pyplot as plt
+from scipy import ndimage as ndi
+from scipy.ndimage import distance_transform_edt, label
 
-def otsu_threshold(img):
-    hist = cv2.calcHist([img], [0], None, [256], [0,256]).flatten()
-    total = img.size
-    sumB, wB, maximum, sum1 = 0.0, 0.0, 0.0, np.dot(np.arange(256), hist)
-    threshold = 0
-    for t in range(256):
-        wB += hist[t]
-        if wB == 0:
-            continue
-        wF = total - wB
-        if wF == 0:
-            break
-        sumB += t * hist[t]
-        mB = sumB / wB
-        mF = (sum1 - sumB) / wF
-        between = wB * wF * (mB - mF) ** 2
-        if between > maximum:
-            maximum = between
-            threshold = t
-    return threshold
+def f_otsu(hist, img):
+    va_N = sum(hist)
+    va_L = len(hist)
+    l_p = [hist[n]/va_N for n in range(va_L)]
+    va_max_sigma = 0
+    va_k = 0
 
-def manual_watershed(image, markers):
-    h, w = image.shape
-    labels = markers.copy()
-    changed = True
-    while changed:
-        changed = False
-        for y in range(1, h-1):
-            for x in range(1, w-1):
-                if labels[y, x] == 0:
-                    neighbor_labels = [labels[y-1, x], labels[y+1, x], labels[y, x-1], labels[y, x+1]]
-                    neighbor_labels = [l for l in neighbor_labels if l > 0]
-                    if len(set(neighbor_labels)) == 1:
-                        labels[y, x] = neighbor_labels[0]
-                        changed = True
-    return labels
+    for k in range(va_L-1):
+        va_w0 = sum(l_p[0:k+1])
+        va_w1 = sum(l_p[k+1:va_L])
+        va_u0 = sum([i*l_p[i] for i in range(0, k+1)]) / va_w0
+        va_u1 = sum([i*l_p[i] for i in range(k+1, va_L)]) / va_w1
+        va_sigma = va_w0 * va_w1 * (va_u1 - va_u0)**2
 
-def segment_with_otsu_and_manual_watershed(img, visualize=False):
-    thresh = otsu_threshold(img)
-    binary = (img > thresh).astype(np.uint8)
-    kernel = np.ones((3,3), np.uint8)
-    sure_fg = cv2.erode(binary, kernel, iterations=2)
-    sure_bg = cv2.dilate(binary, kernel, iterations=3)
-    sure_bg = cv2.bitwise_not(sure_bg)
-    markers = np.zeros_like(img, dtype=np.int32)
-    markers[sure_bg == 1] = 2
-    markers[sure_fg == 1] = 1
-    labels = manual_watershed(img, markers)
-    if visualize:
-        fig, axs = plt.subplots(2, 3, figsize=(15, 10))
-        axs[0, 0].imshow(img, cmap='gray')
-        axs[0, 0].set_title('Oryginał')
-        axs[0, 1].imshow(binary, cmap='gray')
-        axs[0, 1].set_title(f'Binaryzacja Otsu (prog={thresh})')
-        axs[0, 2].imshow(sure_fg, cmap='gray')
-        axs[0, 2].set_title('Markery obiektów (erozja)')
-        axs[1, 0].imshow(sure_bg, cmap='gray')
-        axs[1, 0].set_title('Markery tła (dylatacja)')
-        axs[1, 1].imshow(markers, cmap='nipy_spectral')
-        axs[1, 1].set_title('Markery (1-obiekt, 2-tło)')
-        axs[1, 2].imshow(labels, cmap='nipy_spectral')
-        axs[1, 2].set_title('Wynik watershed')
-        for ax in axs.ravel():
-            ax.axis('off')
-        plt.tight_layout()
-        plt.show()
-    return labels
+        if va_sigma > va_max_sigma:
+            va_max_sigma = va_sigma
+            va_k = k
 
-# Przykład użycia:
-img = cv2.imread('Computer vision/lista 6/coin.png', 0)
-img2 = cv2.imread('Computer vision/lista 1/a.jfif', 0)
-labels = segment_with_otsu_and_manual_watershed(img, visualize=True)
-labels2 = segment_with_otsu_and_manual_watershed(img2, visualize=True)
+    o_img_bin = np.zeros_like(img)
+    o_img_bin[img > va_k] = 1
+    o_img_bin[img <= va_k] = 0
+    return va_k, o_img_bin
+
+
+def f_watershed(o_img):
+    l_hist, _ = np.histogram(o_img, bins=256, range=(0, 255))
+    otsu_val, o_img_bin = f_otsu(l_hist, o_img)
+
+    l_distance = distance_transform_edt(o_img_bin)
+    l_local_max = ndi.maximum_filter(l_distance, size=25) == l_distance
+    o_markers, _ = label(l_local_max)
+    o_img_bin_inv = 1 - o_img_bin
+
+    o_labels = ndi.watershed_ift(o_img_bin_inv.astype(
+        np.uint8), o_markers.astype(np.int32))
+
+    return o_labels, o_img_bin, o_markers, l_distance, otsu_val
+
+
+def f_show(o_img, o_img_bin, o_markers, o_labels):
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 4, 1)
+    plt.imshow(o_img, cmap='gray')
+    plt.title("Oryginał")
+    plt.axis('off')
+
+    plt.subplot(1, 4, 2)
+    plt.imshow(o_img_bin, cmap='gray')
+    plt.title(f"Binaryzacja (próg: {otsu_val})")
+    plt.axis('off')
+
+    plt.subplot(1, 4, 3)
+    plt.imshow(o_markers, cmap='nipy_spectral')
+    plt.title("Markery")
+    plt.axis('off')
+
+    plt.subplot(1, 4, 4)
+    plt.imshow(o_labels, cmap='nipy_spectral')
+    plt.title("Watershed")
+    plt.axis('off')
+
+    plt.show()
+
+
+l_paths = ["Computer vision/lista 6/coin.png","Computer vision/lista 1/a.jfif"]
+for va_path in l_paths:
+    o_img = cv2.imread(va_path, cv2.IMREAD_GRAYSCALE)
+    if o_img is None:
+        print(f"Nie można wczytać obrazu: {va_path}")
+        continue
+    o_labels, o_img_bin, o_markers, l_distance, otsu_val = f_watershed(o_img)
+    f_show(o_img, o_img_bin, o_markers, o_labels)

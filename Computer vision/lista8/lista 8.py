@@ -48,12 +48,12 @@ def add_salt_and_pepper_noise(image, salt_prob=0.05, pepper_prob=0.05):
     
     return noisy_image
 
-d
+
 class NoisyFashionMNIST(Dataset):
     """
     Dataset zwracający pary obrazów: zaszumiony (input) i czysty (target).
     """
-    def __init__(self, root='./data', train=True, noise_type='gaussian', 
+    def __init__(self, root='.Computer vision/lista 8/data', train=True, noise_type='gaussian', 
                  variance=0.1, salt_prob=0.05, pepper_prob=0.05):
         """
         Args:
