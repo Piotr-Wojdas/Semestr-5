@@ -15,7 +15,7 @@ def add_gaussian_noise(image, variance=0.1):
     return torch.clamp(noisy_image, 0.0, 1.0)
 
 
-def add_salt_and_pepper_noise(image, salt_prob=0.05, pepper_prob=0.05):
+def add_salt_and_pepper_noise(image, salt_prob=0.15, pepper_prob=0.15):
     noisy_image = image.clone()
     salt_mask = torch.rand_like(image) < salt_prob
     noisy_image[salt_mask] = 1.0
@@ -25,8 +25,8 @@ def add_salt_and_pepper_noise(image, salt_prob=0.05, pepper_prob=0.05):
 
 
 class NoisyFashionMNIST(Dataset):
-    def __init__(self, root='.Computer vision/lista 8/data', train=True, noise_type='gaussian', 
-                 variance=0.1, salt_prob=0.05, pepper_prob=0.05):
+    def __init__(self, root='Computer vision/lista 8/data', train=True, noise_type='gaussian', 
+                 variance=0.1, salt_prob=0.15, pepper_prob=0.15):
        
         # Transformacja: konwersja do tensora (automatycznie normalizuje do [0, 1])
         transform = transforms.Compose([
@@ -140,7 +140,7 @@ def train_autoencoder(model, train_loader, num_epochs=5, learning_rate=0.001, de
     return loss_history
 
 
-def evaluate_autoencoder(model, test_dataset, num_samples=5, device=device):
+def evaluate_autoencoder(model, test_dataset, num_samples=5, device=device, save_path=None):
     model.eval()
     model.to(device)
     
@@ -178,6 +178,11 @@ def evaluate_autoencoder(model, test_dataset, num_samples=5, device=device):
             axes[i, 2].axis('off')
     
     plt.tight_layout()
+    
+    # Zapisz obraz do pliku, jeśli podano ścieżkę
+    if save_path:
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+    
     plt.show()
 
 def visualize_samples(dataset, num_samples=5):
@@ -228,11 +233,9 @@ if __name__ == "__main__":
     
     print(f"Rozmiar datasetu treningowego: {len(train_dataset_gaussian)}")
     print(f"Rozmiar datasetu testowego: {len(test_dataset_gaussian)}")
-    print("\nWizualizacja próbek z szumem gaussowskim:")
     visualize_samples(train_dataset_gaussian, num_samples=5)
     
     # Przykład 2: Szum salt-and-pepper
-    print("\n2. Tworzenie datasetu z szumem salt-and-pepper...")
     train_dataset_sp = NoisyFashionMNIST(
         root='.Computer vision/lista8/data',
         train=True,
@@ -278,7 +281,8 @@ if __name__ == "__main__":
         model=model_gaussian,
         test_dataset=test_dataset_gaussian,
         num_samples=8,
-        device=device
+        device=device,
+        save_path='Computer vision/lista8/odszumianie_gaussian.png'
     )
     
     # Trening autoenkodera dla szumu salt-and-pepper
@@ -308,7 +312,8 @@ if __name__ == "__main__":
         model=model_sp,
         test_dataset=test_dataset_sp,
         num_samples=8,
-        device=device
+        device=device,
+        save_path='Computer vision/lista8/odszumianie_salt_and_pepper.png'
     )
     
     

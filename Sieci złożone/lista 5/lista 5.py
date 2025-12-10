@@ -1,12 +1,8 @@
-"""
-Character relationship analysis in "The Witcher - The Tower of the Swallow"
-Uses NetworkX for relationship graph and NLTK for text analysis
-"""
-
 import networkx as nx
 import matplotlib.pyplot as plt
 import nltk
 from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
 from collections import defaultdict, Counter
 import re
 import os
@@ -15,6 +11,9 @@ import os
 try:
     nltk.download('punkt', quiet=True)
     nltk.download('punkt_tab', quiet=True)
+    nltk.download('wordnet', quiet=True)
+    nltk.download('omw-1.4', quiet=True)  # Open Multilingual Wordnet
+    nltk.download('averaged_perceptron_tagger', quiet=True)  # POS tagger
 except:
     pass
 
@@ -26,7 +25,7 @@ MIN_OCCURRENCES = 3  # minimum co-occurrences to draw an edge
 # Character definitions and name variants
 CHARACTERS = {
     'Ciri': ['ciri', 'cirilla', 'zireael', 'falka', 'lwie źrebię', 'źrebię'],
-    'Geralt': ['geralt', 'biały wilk', 'gwynbleidd', 'wiedźmin', 'białym wilkiem', 'białego wilka'],
+    'Geralt': ['geralt', 'biały wilk', 'gwynbleidd', 'białym wilkiem', 'białego wilka'],
     'Yennefer': ['yennefer', 'yenn', 'jennefer', 'yen'],
     'Jaskier': ['jaskier', 'dandelion'],
     'Regis': ['regis', 'emiel'],
@@ -89,7 +88,6 @@ def detect_character_in_text(text, character_variants):
 
 
 def build_relationship_graph(windows):
-    """Builds relationship graph based on co-occurrences in windows"""
     print("\nAnalyzing character co-occurrences...")
     
     # Counters for relationships and individual character occurrences
@@ -129,11 +127,6 @@ def build_relationship_graph(windows):
 
 
 def analyze_graph(G, occurrences):
-    """Analyzes relationship graph structure"""
-    print("\n" + "="*70)
-    print("CHARACTER RELATIONSHIP GRAPH ANALYSIS")
-    print("="*70)
-    
     print(f"\nNumber of characters: {G.number_of_nodes()}")
     print(f"Number of relationships: {G.number_of_edges()}")
     
@@ -193,7 +186,10 @@ def analyze_context_nltk(character_context, top_n=5):
         'sam', 'sama', 'samo', 'swój', 'swoja', 'swoje', 'własny', 'taki', 'taka', 'takie'
     }
     
-    for character in sorted(character_context.keys())[:top_n]:
+    # Initialize lemmatizer
+    lemmatizer = WordNetLemmatizer()
+    
+    for character in sorted(character_context.keys()):
         # Combine all windows with given character
         full_context = ' '.join(character_context[character])
         
@@ -205,11 +201,17 @@ def analyze_context_nltk(character_context, top_n=5):
         for other_chars in CHARACTERS.values():
             words = [w for w in words if w not in [v.lower() for v in other_chars]]
         
-        # Most frequent words
+        # Lemmatization - sprowadzamy słowa do formy podstawowej
+        lemmatized_words = [lemmatizer.lemmatize(w) for w in words]
+        
+        # Most frequent words (bez lematyzacji)
         freq = Counter(words)
         
-        print(f"\n{character} - most frequent words in context:")
-        for word, count in freq.most_common(8):
+        # Most frequent lemmas (z lematyzacją)
+        freq_lemma = Counter(lemmatized_words)
+        
+        print(f"\n{character} - most frequent words:")
+        for word, count in freq_lemma.most_common(8):
             print(f"  '{word}': {count}x")
 
 
