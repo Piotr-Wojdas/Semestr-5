@@ -218,14 +218,14 @@ if __name__ == "__main__":
     
     # Szum gaussowski
     train_dataset_gaussian = NoisyFashionMNIST(
-        root='.Computer vision/lista8/data',
+        root='Computer vision/lista8/data',
         train=True,
         noise_type='gaussian',
         variance=0.1
     )
     
     test_dataset_gaussian = NoisyFashionMNIST(
-        root='.Computer vision/lista8/data',
+        root='Computer vision/lista8/data',
         train=False,
         noise_type='gaussian',
         variance=0.1
@@ -237,7 +237,7 @@ if __name__ == "__main__":
     
     # Przykład 2: Szum salt-and-pepper
     train_dataset_sp = NoisyFashionMNIST(
-        root='.Computer vision/lista8/data',
+        root='Computer vision/lista8/data',
         train=True,
         noise_type='salt_and_pepper',
         salt_prob=0.05,
@@ -245,7 +245,7 @@ if __name__ == "__main__":
     )
     
     test_dataset_sp = NoisyFashionMNIST(
-        root='.Computer vision/lista8/data',
+        root='Computer vision/lista8/data',
         train=False,
         noise_type='salt_and_pepper',
         salt_prob=0.15,
