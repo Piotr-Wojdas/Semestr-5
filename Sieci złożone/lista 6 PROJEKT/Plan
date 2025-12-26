@@ -1,0 +1,4 @@
+Robi grafową bazę danych z githuba:
+    Bierzemy wszystkich członków koła Solvro i sprawdzami ich publiczne repozytoria
+Węzeł to repozytorium a krawędź to liczba członków pracująca nad obydwoma repozytoriami
+Potencjalnie rozszerzyć to o więcej kół na pwr, może członkowie jednego koła pracują z drugim kołem
