@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, auc
 
 # Ustawienia
-NORMAL_CLASS = 0  # Cyfra uznawana za "normalną"
+NORMAL_CLASS = 0  # Cyfra normalna
+EPOCHS = 30  # Zwiększone dla lepszego wytrenowania
 BATCH_SIZE = 128
-EPOCHS = 20
 LEARNING_RATE = 0.001
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -21,30 +21,39 @@ print(f"Using device: {DEVICE}")
 class LinearAutoencoder(nn.Module):
     def __init__(self):
         super(LinearAutoencoder, self).__init__()
-        # Encoder
+        # Encoder - większe warstwy, więcej pojemności
         self.encoder = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(28 * 28, 256),
-            nn.ReLU(),
+            nn.Linear(28 * 28, 512),
+            nn.LeakyReLU(0.2),
+            nn.Linear(512, 256),
+            nn.LeakyReLU(0.2),
             nn.Linear(256, 128),
-            nn.ReLU(),
+            nn.LeakyReLU(0.2),
             nn.Linear(128, 64),
-            nn.ReLU()
+            nn.LeakyReLU(0.2)
         )
-        # Decoder
+        # Decoder - symetryczna struktura
         self.decoder = nn.Sequential(
             nn.Linear(64, 128),
-            nn.ReLU(),
+            nn.LeakyReLU(0.2),
             nn.Linear(128, 256),
-            nn.ReLU(),
-            nn.Linear(256, 28 * 28),
-            nn.Sigmoid()
+            nn.LeakyReLU(0.2),
+            nn.Linear(256, 512),
+            nn.LeakyReLU(0.2),
+            nn.Linear(512, 28 * 28),
+            nn.Sigmoid()  # Sigmoid dla lepszej rekonstrukcji
         )
     
     def forward(self, x):
-        encoded = self.encoder(x)
+        # Normalizacja wejścia z [-1, 1] do [0, 1]
+        x_normalized = (x + 1) / 2
+        # Encoder już ma Flatten wewnątrz, nie trzeba spłaszczać tutaj
+        encoded = self.encoder(x_normalized)
         decoded = self.decoder(encoded)
         decoded = decoded.view(-1, 1, 28, 28)
+        # Powrót do zakresu [-1, 1]
+        decoded = decoded * 2 - 1
         return decoded
 
 
@@ -52,28 +61,51 @@ class LinearAutoencoder(nn.Module):
 class ConvAutoencoder(nn.Module):
     def __init__(self):
         super(ConvAutoencoder, self).__init__()
-        # Encoder
+        # Encoder - mniejsza pojemność dla lepszej detekcji anomalii
         self.encoder = nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=1),  # 28x28 -> 14x14
+            nn.Conv2d(1, 16, kernel_size=3, stride=1, padding=1),  # 28x28 -> 28x28
+            nn.BatchNorm2d(16),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1),  # 14x14 -> 7x7
+            nn.MaxPool2d(2, 2),  # 28x28 -> 14x14
+            nn.Dropout2d(0.2),  # Dropout dla regularyzacji
+            
+            nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1),  # 14x14 -> 14x14
+            nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),  # 7x7 -> 4x4
+            nn.MaxPool2d(2, 2),  # 14x14 -> 7x7
+            nn.Dropout2d(0.2),
+            
+            nn.Conv2d(32, 16, kernel_size=3, stride=1, padding=1),  # 7x7 -> 7x7, zmniejszona pojemność!
+            nn.BatchNorm2d(16),
             nn.ReLU()
         )
-        # Decoder
+        # Decoder - symetryczna struktura z upsampling
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=0),  # 4x4 -> 7x7
+            nn.Conv2d(16, 16, kernel_size=3, stride=1, padding=1),  # Dopasowane do 16 kanałów
+            nn.BatchNorm2d(16),
             nn.ReLU(),
-            nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=1),  # 7x7 -> 14x14
+            
+            nn.Upsample(scale_factor=2, mode='nearest'),  # 7x7 -> 14x14
+            nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.ConvTranspose2d(32, 1, kernel_size=3, stride=2, padding=1, output_padding=1),  # 14x14 -> 28x28
-            nn.Sigmoid()
+            
+            nn.Upsample(scale_factor=2, mode='nearest'),  # 14x14 -> 28x28
+            nn.Conv2d(32, 16, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            
+            nn.Conv2d(16, 1, kernel_size=3, stride=1, padding=1),
+            nn.Sigmoid()  # Sigmoid dla lepszej rekonstrukcji
         )
     
     def forward(self, x):
-        encoded = self.encoder(x)
+        # Normalizacja wejścia z [-1, 1] do [0, 1]
+        x_normalized = (x + 1) / 2
+        encoded = self.encoder(x_normalized)
         decoded = self.decoder(encoded)
+        # Powrót do zakresu [-1, 1]
+        decoded = decoded * 2 - 1
         return decoded
 
 
@@ -110,6 +142,7 @@ def load_data():
     """Wczytaj zbiór MNIST i przygotuj dane"""
     transform = transforms.Compose([
         transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))  # Normalizacja do zakresu [-1, 1]
     ])
     
     # Pobierz cały zbiór MNIST
@@ -142,7 +175,7 @@ def prepare_datasets(train_dataset, test_dataset, normal_class):
 def train_autoencoder(model, train_loader, epochs, lr, model_name):
     """Trenuj autoenkoder"""
     model = model.to(DEVICE)
-    criterion = nn.MSELoss()
+    criterion = nn.MSELoss(reduction='sum')
     optimizer = optim.Adam(model.parameters(), lr=lr)
     
     print(f"\n{'='*50}")
@@ -308,10 +341,12 @@ def evaluate_model(normal_errors, anomaly_errors, threshold, model_name):
     anomaly_correct = np.sum(anomaly_errors > threshold)
     anomaly_total = len(anomaly_errors)
     
+    accuracy = 100 * (normal_correct + anomaly_correct) / (normal_total + anomaly_total)
+    
     print(f"\nDetekcja:")
     print(f"  Poprawnie sklasyfikowane normalne: {normal_correct}/{normal_total} ({100*normal_correct/normal_total:.2f}%)")
     print(f"  Poprawnie sklasyfikowane anomalie: {anomaly_correct}/{anomaly_total} ({100*anomaly_correct/anomaly_total:.2f}%)")
-    print(f"  Dokładność ogólna: {100*(normal_correct+anomaly_correct)/(normal_total+anomaly_total):.2f}%")
+    print(f"  Dokładność ogólna: {accuracy:.2f}%")
     
     # ROC AUC
     y_true = np.concatenate([np.zeros(len(normal_errors)), np.ones(len(anomaly_errors))])
@@ -320,7 +355,7 @@ def evaluate_model(normal_errors, anomaly_errors, threshold, model_name):
     roc_auc = auc(fpr, tpr)
     print(f"  ROC AUC: {roc_auc:.4f}")
     
-    return roc_auc, fpr, tpr
+    return roc_auc, fpr, tpr, accuracy
 
 
 def evaluate_cnn(normal_scores, anomaly_scores, model_name):
@@ -350,10 +385,12 @@ def evaluate_cnn(normal_scores, anomaly_scores, model_name):
     anomaly_correct = np.sum(anomaly_scores < threshold)
     anomaly_total = len(anomaly_scores)
     
+    accuracy = 100 * (normal_correct + anomaly_correct) / (normal_total + anomaly_total)
+    
     print(f"\nDetekcja:")
     print(f"  Poprawnie sklasyfikowane normalne: {normal_correct}/{normal_total} ({100*normal_correct/normal_total:.2f}%)")
     print(f"  Poprawnie sklasyfikowane anomalie: {anomaly_correct}/{anomaly_total} ({100*anomaly_correct/anomaly_total:.2f}%)")
-    print(f"  Dokładność ogólna: {100*(normal_correct+anomaly_correct)/(normal_total+anomaly_total):.2f}%")
+    print(f"  Dokładność ogólna: {accuracy:.2f}%")
     
     # ROC AUC (odwracamy scores bo CNN daje wyższe wartości dla normalnych)
     y_true = np.concatenate([np.zeros(len(normal_scores)), np.ones(len(anomaly_scores))])
@@ -362,7 +399,7 @@ def evaluate_cnn(normal_scores, anomaly_scores, model_name):
     roc_auc = auc(fpr, tpr)
     print(f"  ROC AUC: {roc_auc:.4f}")
     
-    return roc_auc, fpr, tpr
+    return roc_auc, fpr, tpr, accuracy
 
 
 def visualize_reconstructions(model, test_loader, n_samples=5, model_name="Model"):
@@ -378,6 +415,10 @@ def visualize_reconstructions(model, test_loader, n_samples=5, model_name="Model
     
     images = images.cpu()
     reconstructed = reconstructed.cpu()
+    
+    # Denormalizacja dla wizualizacji (z [-1, 1] do [0, 1])
+    images = images * 0.5 + 0.5
+    reconstructed = reconstructed * 0.5 + 0.5
     
     fig, axes = plt.subplots(2, n_samples, figsize=(12, 4))
     fig.suptitle(f'{model_name} - Oryginał vs Rekonstrukcja')
@@ -396,11 +437,48 @@ def visualize_reconstructions(model, test_loader, n_samples=5, model_name="Model
     print(f"Zapisano wizualizację: {model_name.replace(' ', '_')}_reconstructions.png")
 
 
+def plot_error_distribution(normal_errors, anomaly_errors, threshold, model_name):
+    """Wizualizuj rozkład błędów rekonstrukcji"""
+    plt.figure(figsize=(12, 6))
+    
+    # Histogram
+    plt.subplot(1, 2, 1)
+    bins = np.linspace(0, max(np.max(normal_errors), np.max(anomaly_errors)), 50)
+    plt.hist(normal_errors, bins=bins, alpha=0.6, label='Normalne', color='green', density=True)
+    plt.hist(anomaly_errors, bins=bins, alpha=0.6, label='Anomalie', color='red', density=True)
+    plt.axvline(threshold, color='blue', linestyle='--', linewidth=2, label=f'Próg: {threshold:.4f}')
+    plt.xlabel('Błąd rekonstrukcji (MSE)')
+    plt.ylabel('Gęstość')
+    plt.title(f'{model_name}\nRozkład błędu rekonstrukcji')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    
+    # Box plot
+    plt.subplot(1, 2, 2)
+    data_to_plot = [normal_errors, anomaly_errors]
+    positions = [1, 2]
+    bp = plt.boxplot(data_to_plot, positions=positions, widths=0.6, patch_artist=True,
+                     labels=['Normalne', 'Anomalie'])
+    bp['boxes'][0].set_facecolor('green')
+    bp['boxes'][1].set_facecolor('red')
+    plt.axhline(threshold, color='blue', linestyle='--', linewidth=2, label=f'Próg: {threshold:.4f}')
+    plt.ylabel('Błąd rekonstrukcji (MSE)')
+    plt.title(f'{model_name}\nBox Plot błędów')
+    plt.legend()
+    plt.grid(True, alpha=0.3, axis='y')
+    
+    plt.tight_layout()
+    filename = f'{model_name.replace(" ", "_")}_error_distribution.png'
+    plt.savefig(filename)
+    print(f"Zapisano rozkład błędów: {filename}")
+    plt.close()
+
+
 def plot_roc_curves(results):
     """Narysuj krzywe ROC dla wszystkich modeli"""
     plt.figure(figsize=(10, 8))
     
-    for model_name, (roc_auc, fpr, tpr) in results.items():
+    for model_name, (roc_auc, fpr, tpr, _) in results.items():
         plt.plot(fpr, tpr, label=f'{model_name} (AUC = {roc_auc:.4f})', linewidth=2)
     
     plt.plot([0, 1], [0, 1], 'k--', label='Random')
@@ -414,6 +492,35 @@ def plot_roc_curves(results):
     plt.tight_layout()
     plt.savefig('roc_curves_comparison.png')
     print("\nZapisano porównanie krzywych ROC: roc_curves_comparison.png")
+    plt.close()
+
+
+def plot_accuracy_comparison(results):
+    """Narysuj wykres słupkowy porównujący accuracy wszystkich modeli"""
+    plt.figure(figsize=(10, 6))
+    
+    model_names = list(results.keys())
+    accuracies = [results[name][3] for name in model_names]
+    
+    colors = ['#2E86AB', '#A23B72', '#F18F01']
+    bars = plt.bar(model_names, accuracies, color=colors, alpha=0.8, edgecolor='black', linewidth=1.5)
+    
+    # Dodaj wartości nad słupkami
+    for bar, acc in zip(bars, accuracies):
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2., height,
+                f'{acc:.2f}%',
+                ha='center', va='bottom', fontsize=12, fontweight='bold')
+    
+    plt.ylabel('Accuracy (%)', fontsize=12, fontweight='bold')
+    plt.xlabel('Model', fontsize=12, fontweight='bold')
+    plt.title('Porównanie dokładności modeli detekcji anomalii', fontsize=14, fontweight='bold')
+    plt.ylim([0, 105])
+    plt.grid(True, alpha=0.3, axis='y', linestyle='--')
+    plt.tight_layout()
+    plt.savefig('accuracy_comparison.png', dpi=300)
+    print("Zapisano porównanie accuracy: accuracy_comparison.png")
+    plt.close()
 
 
 def main():
@@ -449,13 +556,15 @@ def main():
     threshold_linear = determine_threshold(normal_errors_linear, percentile=95)
     
     # Ewaluacja
-    roc_auc, fpr, tpr = evaluate_model(normal_errors_linear, anomaly_errors_linear, 
+    roc_auc, fpr, tpr, accuracy = evaluate_model(normal_errors_linear, anomaly_errors_linear, 
                                        threshold_linear, "Autoenkoder Liniowy")
-    results["Autoenkoder Liniowy"] = (roc_auc, fpr, tpr)
+    results["Autoenkoder Liniowy"] = (roc_auc, fpr, tpr, accuracy)
     
-    # Wizualizacja
+    # Wizualizacje
     visualize_reconstructions(linear_ae, test_anomaly_loader, n_samples=5, 
                             model_name="Autoenkoder Liniowy")
+    plot_error_distribution(normal_errors_linear, anomaly_errors_linear, 
+                          threshold_linear, "Autoenkoder Liniowy")
     
     # 4. AUTOENKODER KONWOLUCYJNY
     print("\n" + "="*70)
@@ -463,23 +572,26 @@ def main():
     print("="*70)
     
     conv_ae = ConvAutoencoder()
-    conv_ae = train_autoencoder(conv_ae, train_loader, EPOCHS, LEARNING_RATE, "Autoenkoder Konwolucyjny")
+    # Wyższy learning rate dla lepszej konwergencji
+    conv_ae = train_autoencoder(conv_ae, train_loader, EPOCHS, LEARNING_RATE * 3, "Autoenkoder Konwolucyjny")
     
     # Oblicz błędy rekonstrukcji
     normal_errors_conv = calculate_reconstruction_error(conv_ae, test_normal_loader)
     anomaly_errors_conv = calculate_reconstruction_error(conv_ae, test_anomaly_loader)
     
-    # Wyznacz próg
-    threshold_conv = determine_threshold(normal_errors_conv, percentile=95)
+    # Wyznacz próg - wyższy percentyl dla bardziej restrykcyjnej detekcji
+    threshold_conv = determine_threshold(normal_errors_conv, percentile=98)
     
     # Ewaluacja
-    roc_auc, fpr, tpr = evaluate_model(normal_errors_conv, anomaly_errors_conv, 
+    roc_auc, fpr, tpr, accuracy = evaluate_model(normal_errors_conv, anomaly_errors_conv, 
                                        threshold_conv, "Autoenkoder Konwolucyjny")
-    results["Autoenkoder Konwolucyjny"] = (roc_auc, fpr, tpr)
+    results["Autoenkoder Konwolucyjny"] = (roc_auc, fpr, tpr, accuracy)
     
-    # Wizualizacja
+    # Wizualizacje
     visualize_reconstructions(conv_ae, test_anomaly_loader, n_samples=5, 
                             model_name="Autoenkoder Konwolucyjny")
+    plot_error_distribution(normal_errors_conv, anomaly_errors_conv, 
+                          threshold_conv, "Autoenkoder Konwolucyjny")
     
     # 5. CNN
     print("\n" + "="*70)
@@ -495,19 +607,39 @@ def main():
     anomaly_scores_cnn = calculate_cnn_scores(cnn, test_anomaly_loader)
     
     # Ewaluacja
-    roc_auc, fpr, tpr = evaluate_cnn(normal_scores_cnn, anomaly_scores_cnn, "CNN")
-    results["CNN"] = (roc_auc, fpr, tpr)
+    roc_auc, fpr, tpr, accuracy = evaluate_cnn(normal_scores_cnn, anomaly_scores_cnn, "CNN")
+    results["CNN"] = (roc_auc, fpr, tpr, accuracy)
     
     # 6. Porównanie wszystkich modeli
     print("\n" + "="*70)
     print("PODSUMOWANIE")
     print("="*70)
     print("\nROC AUC dla wszystkich modeli:")
-    for model_name, (roc_auc, _, _) in results.items():
+    for model_name, (roc_auc, _, _, _) in results.items():
         print(f"  {model_name}: {roc_auc:.4f}")
     
-    # Narysuj krzywe ROC
+    print("\nAccuracy dla wszystkich modeli:")
+    for model_name, (_, _, _, accuracy) in results.items():
+        print(f"  {model_name}: {accuracy:.2f}%")
+    
+    # Przygotuj dane dla analizy porównawczej
+    all_errors = {
+        "Autoenkoder Liniowy": {
+            "normal": normal_errors_linear,
+            "anomaly": anomaly_errors_linear
+        },
+        "Autoenkoder Konwolucyjny": {
+            "normal": normal_errors_conv,
+            "anomaly": anomaly_errors_conv
+        }
+    }
+    
+    # Jeśli CNN używa scores zamiast errors, możemy też je dodać do porównania
+    # (ale CNN nie ma "błędu rekonstrukcji" w tradycyjnym sensie)
+    
+    # Narysuj wszystkie wizualizacje porównawcze
     plot_roc_curves(results)
+    plot_accuracy_comparison(results)
     
     print("\n" + "="*70)
     print("EKSPERYMENT ZAKOŃCZONY")
